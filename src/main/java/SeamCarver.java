@@ -2,12 +2,15 @@
 
 public class SeamCarver {
 	
+	
+	private Picture picture;
+	
 	/**
 	 * create a seam carver object based on the given picture
 	 * @param picture
 	 */
 	public SeamCarver(Picture picture)  {
-		
+		this.picture = new Picture(picture);
 	}
 	
 	/**
@@ -15,7 +18,7 @@ public class SeamCarver {
 	 * @return
 	 */
 	public Picture picture() {
-		
+		return null;
 	}
 	
 	/**
@@ -23,7 +26,7 @@ public class SeamCarver {
 	 * @return
 	 */
 	public int width()  {
-		
+		return -1;
 	}
 	
 	/**
@@ -31,7 +34,7 @@ public class SeamCarver {
 	 * @return
 	 */
 	public int height() {
-		
+		return -1;
 	}
 	
 	/**
@@ -39,9 +42,19 @@ public class SeamCarver {
 	 * @param x
 	 * @param y
 	 * @return
+	 * @throws IndexOutOfBoundsException If the x or y indexes are out of bounds.
 	 */
 	public double energy(int x, int y) {
+		if (x < 0 || x > picture.width()) {
+			throw new IndexOutOfBoundsException("x index ouf of bounds.");
+		}
 		
+		if (y < 0 || y > picture.height()) {
+			throw new IndexOutOfBoundsException("y index ouf of bounds.");
+		}
+		
+		
+		return -1;
 	}
 	
 	/**
@@ -49,7 +62,7 @@ public class SeamCarver {
 	 * @return
 	 */
 	public int[] findHorizontalSeam() {
-		
+		return null;
 	}
 	
 	/**
@@ -57,7 +70,7 @@ public class SeamCarver {
 	 * @return
 	 */
 	public int[] findVerticalSeam() {
-		
+		return null;
 	}
 	
 	/**
