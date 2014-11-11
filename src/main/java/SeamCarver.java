@@ -78,7 +78,9 @@ public class SeamCarver {
 	 * @param seam
 	 */
 	public void removeHorizontalSeam(int[] seam) {
-		
+		if (seam == null) {
+			throw new NullPointerException("seam must not be null.");
+		}
 	}
 	
 	/**
@@ -86,6 +88,9 @@ public class SeamCarver {
 	 * @param seam
 	 */
 	public void removeVerticalSeam(int[] seam) {
+		if (seam == null) {
+			throw new NullPointerException("seam must not be null.");
+		}
 	}
 }
 
