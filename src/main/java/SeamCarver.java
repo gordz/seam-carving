@@ -178,7 +178,7 @@ public class SeamCarver {
 		
 		int[] adji = adj(0);
 		for (int adjacent : adji) {
-			distTo[adjacent] = 0;
+			distTo[adjacent] = energy(adjacent);
 			edgeTo[adjacent] = 0;
 		}
 
@@ -189,8 +189,8 @@ public class SeamCarver {
 				int vertex = pixelToVertex(x, y);
 				int[] adj = adj(vertex);
 				for (int adjacent : adj) {
-					if (distTo[adjacent] > distTo[vertex] + energy(vertex)) {
-						distTo[adjacent] = distTo[vertex] + energy(vertex);
+					if (distTo[adjacent] > distTo[vertex] + energy(adjacent)) {
+						distTo[adjacent] = distTo[vertex] + energy(adjacent);
 						edgeTo[adjacent] = vertex;
 					}
 				}
@@ -202,10 +202,19 @@ public class SeamCarver {
 			vertices.push(vertexToPixel(v).x);
 		}
 		
+		System.out.println("EdgeTo 31 = " + edgeTo[31]);
+		System.out.println("EdgeTo 24 = " + edgeTo[24]);
+		System.out.println("EdgeTo 17 = " + edgeTo[17]);
+		System.out.println("EdgeTo 10 = " + edgeTo[10]);
+		System.out.println("EdgeTo 3 = " + edgeTo[3]);
 		return null;
 	}
 	
 	double energy(int vertex) {
+		if (vertex == 0 || vertex == ((picture.width() * picture.height()) + 1)) {
+			return 0;
+			
+		}
 		Pixel pixel = vertexToPixel(vertex);
 		return energy[pixel.y][pixel.x];
 	}
