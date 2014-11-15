@@ -6,15 +6,15 @@ public class SeamCarver {
 	
 	
 	private Picture picture;
-	
-	private static final Color EDGE_PIXEL = new Color(255, 255, 255);
-	
+	private double[][] energy;
+
 	/**
 	 * create a seam carver object based on the given picture
 	 * @param picture
 	 */
-	public SeamCarver(Picture picture)  {
+	public SeamCarver(final Picture picture)  {
 		this.picture = new Picture(picture);
+		this.energy = calculateEnergyMatrix(this.picture);
 	}
 	
 	/**
@@ -86,7 +86,8 @@ public class SeamCarver {
 	 * @return
 	 */
 	public int[] findHorizontalSeam() {
-		return null;
+		int[] seam = new int[picture.width()];
+		return seam;
 	}
 	
 	/**
@@ -94,7 +95,61 @@ public class SeamCarver {
 	 * @return
 	 */
 	public int[] findVerticalSeam() {
-		return null;
+		final int[] seam = new int[picture.height()];
+		
+		double[] edgeTo = new double[(picture.height() * picture.width())];
+		double[] distTo = new double[(picture.height() * picture.width())];
+		
+		for (int i = 0; i < distTo.length; i++) {
+			distTo[i] = Double.POSITIVE_INFINITY;
+			edgeTo[i] = Double.POSITIVE_INFINITY;
+		}
+		
+		// Handle first row.
+		
+		
+		
+		return seam;
+	}
+	
+	static class Pixel {
+		Pixel(final int x, final int y) {
+			
+		}
+	}
+	
+	int[][] adj(int x, int y) {
+		int[][] adj;
+		if (x == 0) {
+			adj = new int[2][2];
+			adj[0] = new int[] {x, y + 1};
+			adj[1] = new int[] {x + 1, y + 1};
+		} else if (x == picture.width() - 1) {
+			adj = new int[2][2];
+			adj[0] = new int[] {x - 1, y + 1};
+			adj[1] = new int[] {x, y + 1};
+		} else {
+			adj = new int[3][2];
+			adj[0] = new int[] {x - 1, y + 1};
+			adj[1] = new int[] {x, y + 1};
+			adj[2] = new int[] {x + 1, y + 1};
+		}
+		return adj;
+	}
+	
+	/**
+	 * Calculate the energy for each pixel in a {@link Picture}.
+	 * @param picture
+	 * @return
+	 */
+	private double[][] calculateEnergyMatrix(final Picture picture) {
+		final double[][] energy = new double[picture.width()][picture.height()];
+		for (int x = 0; x < picture.width(); x++) {
+			for (int y = 0; y < picture.height(); y++) {
+				energy[x][y] = energy(x, y);
+			}
+		}
+		return energy;
 	}
 	
 	/**
@@ -117,6 +172,13 @@ public class SeamCarver {
 		if (seam == null) {
 			throw new NullPointerException("seam must not be null.");
 		}
+	}
+
+	
+	EdgeWeightedDigraph constructDigraph() {
+		// TODO Auto-generated method stub
+		return new EdgeWeightedDigraph(picture.height() * picture.width());
+		
 	}
 }
 

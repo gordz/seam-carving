@@ -1,4 +1,5 @@
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertThat;
 
 import java.awt.Color;
@@ -12,6 +13,8 @@ import org.junit.Test;
 public class SeamCarverTest {
 	
 	private Picture picture = new Picture(10,20);
+	
+	
 	private SeamCarver seamCarver = new SeamCarver(picture);
 	
 	@Test (expected = IndexOutOfBoundsException.class)
@@ -90,5 +93,13 @@ public class SeamCarverTest {
 	@Test (expected = IllegalArgumentException.class)
 	public void removeVerticalSeam_ShouldThrowIllegalArgumentException_WhenPictureHWidthEqualTo_0() {
 		Assert.fail();
+	}
+	
+	@Test
+	public void findVerticalSeam_ShouldReturnSeam_WhenImageIsNotEmpty() {
+		Picture picture = new Picture("6x5.png");
+		SeamCarver seamCarver = new SeamCarver(picture);
+		int[] seam = seamCarver.findVerticalSeam();
+		assertArrayEquals(new int[] { 2, 3, 3, 3, 2 }, seam);
 	}
 }
