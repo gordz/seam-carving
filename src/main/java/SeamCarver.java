@@ -174,12 +174,14 @@ public class SeamCarver {
 	
 		// Initialise source vertex.
 		distTo[0] = 0;
+		edgeTo[0] = -1;
 		
-		
-		for (int x = 1; x <= picture.width(); x++) {
-			distTo[x] = energy(x);
-			edgeTo[x] = 0;
+		int[] adji = adj(0);
+		for (int adjacent : adji) {
+			distTo[adjacent] = 0;
+			edgeTo[adjacent] = 0;
 		}
+
 	
 		// For each vertex in topological order, relax the vertex.
 		for (int y = 0; y < picture.height(); y++) {
