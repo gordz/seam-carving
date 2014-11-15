@@ -94,6 +94,7 @@ public class SeamCarver {
 	 * sequence of indices for vertical seam
 	 * @return
 	 */
+	/*
 	public int[] findVerticalSeam() {
 		final int[] seam = new int[picture.height()];
 		
@@ -107,26 +108,188 @@ public class SeamCarver {
 		
 		return null;
 	}
+	*/
 	
+	/*
+	public int[] findVerticalSeam() {
+		final int[] seam = new int[picture.height()];
+		
+		double[][] edgeTo = new double[picture.width()][picture.height()];
+		double[][] distTo = new double[picture.width()][picture.height()];
+		
+		for (int x = 0; x < picture.width(); x++) {
+			for (int y = 0; y < picture.height(); y++) {
+				edgeTo[x][y] = Double.POSITIVE_INFINITY;
+				distTo[x][y] = Double.POSITIVE_INFINITY;
+			}
+		}
+		
+		return null;
+	}
+	*/
 	
+	/*
+	public int[] findVerticalSeam() {
+		final int[] seam = new int[picture.height()];
+		
+		double[][] edgeTo = new double[picture.width()][picture.height()];
+		double[][] distTo = new double[picture.width()][picture.height()];
+		
+		for (int x = 0; x < picture.width(); x++) {
+			for (int y = 0; y < picture.height(); y++) {
+				edgeTo[x][y] = Double.POSITIVE_INFINITY;
+				distTo[x][y] = Double.POSITIVE_INFINITY;
+			}
+		}
+	
+		MinPQ<Pixel> pq = new MinPQ<SeamCarver.Pixel>();
+		
+		for (int i = 0; i < picture.width(); i++) {
+			distTo[i][0] = energy[i][0];
+			pq.insert(new Pixel(i, 0, energy[i][0]));
+		}
+		
+		while (!pq.isEmpty()) {
+			Pixel next = pq.delMin();
+			relax(next, pq, distTo, edgeTo);
+		}
+		
+		
+		
+		return null;
+	}
+	*/
 	
 
+	public int[] findVerticalSeam() {
+		final int[] seam = new int[picture.height()];
+		
+		int[] edgeTo = new int[(picture.width() * picture.height()) + 2];
+		double[] distTo = new double[(picture.width() * picture.height()) + 2];
+		
+		for (int i = 0; i < (picture.width() * picture.height()) + 2; i++) {
+			edgeTo[i] = -1;
+			distTo[i] = Double.POSITIVE_INFINITY;
+		}
 	
-	double[][] adj(int x, int y) {
-		double[][] adj;
+		// Initialise source vertex.
+		distTo[0] = 0;
+		
+		
+		for (int x = 1; x <= picture.width(); x++) {
+			distTo[x] = energy(x);
+			edgeTo[x] = 0;
+		}
+	
+		// For each vertex in topological order, relax the vertex.
+		for (int y = 0; y < picture.height(); y++) {
+			for (int x = 0; x < picture.width(); x++) {
+				int vertex = pixelToVertex(x, y);
+				int[] adj = adj(vertex);
+				for (int adjacent : adj) {
+					if (distTo[adjacent] > distTo[vertex] + energy(vertex)) {
+						distTo[adjacent] = distTo[vertex] + energy(vertex);
+						edgeTo[adjacent] = vertex;
+					}
+				}
+			}
+		}
+		
+		Stack<Integer> vertices = new Stack<Integer>();
+		for (int v = edgeTo[edgeTo.length - 1]; v != -1; v = edgeTo[v]) {
+			vertices.push(vertexToPixel(v).x);
+		}
+		
+		return null;
+	}
+	
+	double energy(int vertex) {
+		Pixel pixel = vertexToPixel(vertex);
+		return energy[pixel.y][pixel.x];
+	}
+	
+	
+ 
+	private static class Pixel {
+		int x;
+		int y;
+	
+		public Pixel(int x, int y) {
+			this.x = x;
+			this.y = y;
+		}
+		
+		@Override
+		public String toString() {
+			return "Pixel (" + x + ", " + y + ")";
+		}
+	}
+	
+	private Pixel vertexToPixel(int vertex) {
+		int x = ((vertex - 1) % picture.width());
+		int y = ((vertex - 1) / picture.width());
+		return new Pixel(x, y);
+	}
+
+	private int pixelToVertex(int x, int y) {
+		return (y * picture.width()) + x + 1;
+	}
+	
+	
+	int[] adj(int vertex) {
+		
+		if (vertex == 0) {
+			int[] adj = new int[picture.width()];
+			for (int i = 0 ; i < picture.width(); i++) {
+				adj[i] = i + 1;
+			}
+			return adj;
+		} else if (vertex == (picture.width() * picture.height()) + 1) {
+			return new int[0];
+		} else if (vertex >= ((picture.width() * picture.height()) - picture.width())) {
+			return new int[] {(picture.width() * picture.height()) + 1};
+		}
+		
+		
+		Pixel pixel = vertexToPixel(vertex);
+		int x = pixel.x;
+		int y = pixel.y;
+		
+		int[] adj;
 		if (x == 0) {
-			adj = new double[2][2];
-			adj[0] = new double[] {x, y + 1 };
-			adj[1] = new double[] {x + 1, y + 1};
+			adj = new int[2];
+			adj[0] = pixelToVertex(x, y + 1);
+			adj[1] = pixelToVertex(x + 1, y + 1);
 		} else if (x == picture.width() - 1) {
-			adj = new double[2][2];
-			adj[0] = new double[] {x - 1, y + 1};
-			adj[1] = new double[] {x, y + 1};
+			adj = new int[2];
+			adj[0] = pixelToVertex(x - 1, y + 1);
+			adj[1] = pixelToVertex(x, y + 1);
 		} else {
-			adj = new double[3][2];
-			adj[0] = new double[] {x - 1, y + 1};
-			adj[1] = new double[] {x, y + 1};
-			adj[2] = new double[] {x + 1, y + 1};
+			adj = new int[3];
+			adj[0] = pixelToVertex(x - 1, y + 1);
+			adj[1] = pixelToVertex(x, y + 1);
+			adj[2] = pixelToVertex(x + 1, y + 1);
+		}
+		return adj;
+	}
+	
+	
+	
+	int[] adj(int x, int y) {
+		int[] adj;
+		if (x == 0) {
+			adj = new int[2];
+			adj[0] = pixelToVertex(x, y + 1);
+			adj[1] = pixelToVertex(x + 1, y + 1);
+		} else if (x == picture.width() - 1) {
+			adj = new int[2];
+			adj[0] = pixelToVertex(x - 1, y + 1);
+			adj[1] = pixelToVertex(x, y + 1);
+		} else {
+			adj = new int[3];
+			adj[0] = pixelToVertex(x - 1, y + 1);
+			adj[1] = pixelToVertex(x, y + 1);
+			adj[2] = pixelToVertex(x + 1, y + 1);
 		}
 		return adj;
 	}
@@ -137,10 +300,10 @@ public class SeamCarver {
 	 * @return
 	 */
 	private double[][] calculateEnergyMatrix(final Picture picture) {
-		final double[][] energy = new double[picture.width()][picture.height()];
+		final double[][] energy = new double[picture.height()][picture.width()];
 		for (int x = 0; x < picture.width(); x++) {
 			for (int y = 0; y < picture.height(); y++) {
-				energy[x][y] = energy(x, y);
+				energy[y][x] = energy(x, y);
 			}
 		}
 		return energy;
