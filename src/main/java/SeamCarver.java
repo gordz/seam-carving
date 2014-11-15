@@ -1,9 +1,13 @@
+import java.awt.Color;
+
 
 
 public class SeamCarver {
 	
 	
 	private Picture picture;
+	
+	private static final Color EDGE_PIXEL = new Color(255, 255, 255);
 	
 	/**
 	 * create a seam carver object based on the given picture
@@ -53,8 +57,28 @@ public class SeamCarver {
 			throw new IndexOutOfBoundsException("y index ouf of bounds.");
 		}
 		
+		// Edge pixels have energe 255^2 + 255^2 + 255^2.
+		if (x == 0 || y == 0 || x == picture.width() -1 || y == picture.height() - 1) {
+			return 195075;	
+		}
+
+		final Color leftPixel = picture.get(x - 1, y);
+		final Color rightPixel = picture.get(x + 1, y);
+		final Color topPixel = picture.get(x, y - 1);
+		final Color bottomPixel = picture.get(x, y + 1);
 		
-		return -1;
+		final int rX = Math.abs(leftPixel.getRed() - rightPixel.getRed());
+		final int bX = Math.abs(leftPixel.getBlue() - rightPixel.getBlue());
+		final int gX = Math.abs(leftPixel.getGreen() - rightPixel.getGreen());
+		
+		final int rY = Math.abs(topPixel.getRed() - bottomPixel.getRed());
+		final int bY = Math.abs(topPixel.getBlue() - bottomPixel.getBlue());
+		final int gY = Math.abs(topPixel.getGreen() - bottomPixel.getGreen());
+		
+		final double xGradientSquare = Math.pow(rX, 2) + Math.pow(bX, 2)  + Math.pow(gX, 2);
+		final double yGradientSquare = Math.pow(rY, 2) + Math.pow(bY, 2) + Math.pow(gY, 2);
+		final double energy = xGradientSquare + yGradientSquare;
+		return energy;
 	}
 	
 	/**
