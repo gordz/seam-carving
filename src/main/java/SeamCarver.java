@@ -94,80 +94,13 @@ public class SeamCarver {
 	 * sequence of indices for vertical seam
 	 * @return
 	 */
-	/*
-	public int[] findVerticalSeam() {
-		final int[] seam = new int[picture.height()];
-		
-		double[] edgeTo = new double[(picture.height() * picture.width())];
-		double[] distTo = new double[(picture.height() * picture.width())];
-		
-		for (int i = 0; i < distTo.length; i++) {
-			distTo[i] = Double.POSITIVE_INFINITY;
-			edgeTo[i] = Double.POSITIVE_INFINITY;
-		}
-		
-		return null;
-	}
-	*/
-	
-	/*
-	public int[] findVerticalSeam() {
-		final int[] seam = new int[picture.height()];
-		
-		double[][] edgeTo = new double[picture.width()][picture.height()];
-		double[][] distTo = new double[picture.width()][picture.height()];
-		
-		for (int x = 0; x < picture.width(); x++) {
-			for (int y = 0; y < picture.height(); y++) {
-				edgeTo[x][y] = Double.POSITIVE_INFINITY;
-				distTo[x][y] = Double.POSITIVE_INFINITY;
-			}
-		}
-		
-		return null;
-	}
-	*/
-	
-	/*
-	public int[] findVerticalSeam() {
-		final int[] seam = new int[picture.height()];
-		
-		double[][] edgeTo = new double[picture.width()][picture.height()];
-		double[][] distTo = new double[picture.width()][picture.height()];
-		
-		for (int x = 0; x < picture.width(); x++) {
-			for (int y = 0; y < picture.height(); y++) {
-				edgeTo[x][y] = Double.POSITIVE_INFINITY;
-				distTo[x][y] = Double.POSITIVE_INFINITY;
-			}
-		}
-	
-		MinPQ<Pixel> pq = new MinPQ<SeamCarver.Pixel>();
-		
-		for (int i = 0; i < picture.width(); i++) {
-			distTo[i][0] = energy[i][0];
-			pq.insert(new Pixel(i, 0, energy[i][0]));
-		}
-		
-		while (!pq.isEmpty()) {
-			Pixel next = pq.delMin();
-			relax(next, pq, distTo, edgeTo);
-		}
-		
-		
-		
-		return null;
-	}
-	*/
-	
-
 	public int[] findVerticalSeam() {
 		final int[] seam = new int[picture.height()];
 		
 		int[] edgeTo = new int[(picture.width() * picture.height()) + 2];
 		double[] distTo = new double[(picture.width() * picture.height()) + 2];
 		
-		for (int i = 0; i < (picture.width() * picture.height()) + 2; i++) {
+		for (int i = 0; i <= (picture.width() * picture.height()) + 1; i++) {
 			edgeTo[i] = -1;
 			distTo[i] = Double.POSITIVE_INFINITY;
 		}
@@ -178,35 +111,54 @@ public class SeamCarver {
 		
 		int[] adji = adj(0);
 		for (int adjacent : adji) {
-			distTo[adjacent] = energy(adjacent);
+			distTo[adjacent] = 195075;
 			edgeTo[adjacent] = 0;
 		}
 
 	
-		// For each vertex in topological order, relax the vertex.
-		for (int y = 0; y < picture.height(); y++) {
-			for (int x = 0; x < picture.width(); x++) {
-				int vertex = pixelToVertex(x, y);
-				int[] adj = adj(vertex);
-				for (int adjacent : adj) {
-					if (distTo[adjacent] > distTo[vertex] + energy(adjacent)) {
-						distTo[adjacent] = distTo[vertex] + energy(adjacent);
-						edgeTo[adjacent] = vertex;
-					}
+		
+		for (int vertex = 1; vertex <= (picture.width() * picture.height()) + 1; vertex++) {
+			int[] adj = adj(vertex);
+			for (int adjacent : adj) {
+				if (distTo[vertex] + energy(adjacent) <= distTo[adjacent]) {
+					distTo[adjacent] = distTo[vertex] + energy(adjacent);
+					edgeTo[adjacent] = vertex;
 				}
 			}
 		}
 		
-		Stack<Integer> vertices = new Stack<Integer>();
-		for (int v = edgeTo[edgeTo.length - 1]; v != -1; v = edgeTo[v]) {
-			vertices.push(vertexToPixel(v).x);
+		int finalVertex = pixelToVertex(picture.width() - 1, picture.height() - 1) + 1;
+		Stack<Integer> path = new Stack<Integer>();
+		for (int v = finalVertex; v != 0; v = edgeTo[v]) {
+			path.push(v);
 		}
 		
-		System.out.println("EdgeTo 31 = " + edgeTo[31]);
-		System.out.println("EdgeTo 24 = " + edgeTo[24]);
-		System.out.println("EdgeTo 17 = " + edgeTo[17]);
-		System.out.println("EdgeTo 10 = " + edgeTo[10]);
-		System.out.println("EdgeTo 3 = " + edgeTo[3]);
+		
+		for (int i = 1; i <= 6; i++) {
+			System.out.print(distTo[i] + " ");
+		}
+		System.out.println();
+		
+		for (int i = 7; i <= 12; i++) {
+			System.out.print(distTo[i] + " ");
+		}
+		System.out.println();
+		
+		for (int i = 13; i <= 18; i++) {
+			System.out.print(distTo[i] + " ");
+		}
+		System.out.println();
+		
+		for (int i = 19; i <= 24; i++) {
+			System.out.print(distTo[i] + " ");
+		}
+		System.out.println();
+		
+		for (int i = 25; i <= 30; i++) {
+			System.out.print(distTo[i] + " ");
+		}
+		System.out.println();
+		
 		return null;
 	}
 	
@@ -257,7 +209,7 @@ public class SeamCarver {
 			return adj;
 		} else if (vertex == (picture.width() * picture.height()) + 1) {
 			return new int[0];
-		} else if (vertex >= ((picture.width() * picture.height()) - picture.width())) {
+		} else if (vertex > ((picture.width() * picture.height()) - picture.width())) {
 			return new int[] {(picture.width() * picture.height()) + 1};
 		}
 		

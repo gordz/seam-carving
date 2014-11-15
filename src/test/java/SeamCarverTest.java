@@ -1,11 +1,11 @@
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import java.awt.Color;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 
@@ -102,4 +102,76 @@ public class SeamCarverTest {
 		int[] seam = seamCarver.findVerticalSeam();
 		assertArrayEquals(new int[] { 2, 3, 3, 3, 2 }, seam);
 	}
+	
+	@Test
+	public void adj_ShouldReturnAdjacentVerticesInLastRow_WhenOnSecondLastRow() {
+		Picture picture = new Picture("6x5.png");
+		SeamCarver seamCarver = new SeamCarver(picture);
+		
+		assertEquals(seamCarver.adj(19)[0], 25);
+		assertEquals(seamCarver.adj(19)[1], 26);
+		
+		assertEquals(seamCarver.adj(20)[0], 25);
+		assertEquals(seamCarver.adj(20)[1], 26);
+		assertEquals(seamCarver.adj(20)[2], 27);
+		
+		assertEquals(seamCarver.adj(21)[0], 26);
+		assertEquals(seamCarver.adj(21)[1], 27);
+		assertEquals(seamCarver.adj(21)[2], 28);
+		
+		assertEquals(seamCarver.adj(22)[0], 27);
+		assertEquals(seamCarver.adj(22)[1], 28);
+		assertEquals(seamCarver.adj(22)[2], 29);
+		
+		assertEquals(seamCarver.adj(23)[0], 28);
+		assertEquals(seamCarver.adj(23)[1], 29);
+		assertEquals(seamCarver.adj(23)[2], 30);
+		
+		assertEquals(seamCarver.adj(24)[0], 29);
+		assertEquals(seamCarver.adj(24)[1], 30);
+	}
+
+	
+	@Test
+	public void adj_ShouldReturnAdjacentVerticesForNextRow_WhenNotOnLastRow() {
+		Picture picture = new Picture("6x5.png");
+		SeamCarver seamCarver = new SeamCarver(picture);
+		
+		assertEquals(seamCarver.adj(1)[0], 7);
+		assertEquals(seamCarver.adj(1)[1], 8);
+		
+		assertEquals(seamCarver.adj(2)[0], 7);
+		assertEquals(seamCarver.adj(2)[1], 8);
+		assertEquals(seamCarver.adj(2)[2], 9);
+		
+		assertEquals(seamCarver.adj(3)[0], 8);
+		assertEquals(seamCarver.adj(3)[1], 9);
+		assertEquals(seamCarver.adj(3)[2], 10);
+		
+		assertEquals(seamCarver.adj(4)[0], 9);
+		assertEquals(seamCarver.adj(4)[1], 10);
+		assertEquals(seamCarver.adj(4)[2], 11);
+		
+		assertEquals(seamCarver.adj(5)[0], 10);
+		assertEquals(seamCarver.adj(5)[1], 11);
+		assertEquals(seamCarver.adj(5)[2], 12);
+		
+		assertEquals(seamCarver.adj(6)[0], 11);
+		assertEquals(seamCarver.adj(6)[1], 12);
+	}
+	
+	@Test
+	public void adj_ShouldReturnVirtualPixel_WhenOnLastRow() {
+		Picture picture = new Picture("6x5.png");
+		SeamCarver seamCarver = new SeamCarver(picture);
+		
+		assertEquals(seamCarver.adj(25)[0], 31);
+		assertEquals(seamCarver.adj(26)[0], 31);
+		assertEquals(seamCarver.adj(27)[0], 31);
+		assertEquals(seamCarver.adj(28)[0], 31);
+		assertEquals(seamCarver.adj(29)[0], 31);
+		assertEquals(seamCarver.adj(30)[0], 31);
+	}
+
+	
 }
