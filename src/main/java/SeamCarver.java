@@ -105,62 +105,28 @@ public class SeamCarver {
 			edgeTo[i] = Double.POSITIVE_INFINITY;
 		}
 		
-		MinPQ<Pixel> minPQ = new MinPQ<SeamCarver.Pixel>();
-		
-		// Handle first row.
-		for (int i = 0; i < picture.width(); i++) {
-			distTo[i] = energy[i][0];
-			minPQ.insert(new Pixel(i, 0, energy[i][0]));
-		}
-		
-		while (!minPQ.isEmpty()) {
-			Pixel pixel = minPQ.delMin();
-			
-		}
+		return null;
 	}
 	
-	private void relax(Pixel pixel, MinPQ<Pixel> minPQ) {
-		for (Pixel adjacent : adj(pixel)) {
-			minPQ.insert(adjacent);
-			if ()
-		}
-		
-	}
 	
-	static class Pixel implements Comparable<Pixel> {
-		
-		private final int x;
-		private final int y;
-		private final double energy;
-		
-		Pixel(final int x, final int y, final double energy) {
-			this.x = x;
-			this.y = y;
-			this.energy = energy;
-		}
+	
 
-		public int compareTo(Pixel o) {
-			return Double.compare(energy, o.energy);
-		}
-		
-		
-	}
 	
-	Pixel[] adj(Pixel pixel) {
-		Pixel[] adj;
-		if (pixel.x == 0) {
-			adj = new Pixel[2];
-			adj[0] = new Pixel (pixel.x, pixel.y + 1, energy[pixel.x][pixel.y + 1]);
-			adj[1] = new Pixel (pixel.x + 1, pixel.y + 1, energy[pixel.x + 1][pixel.y + 1]);
-		} else if (pixel.x == picture.width() - 1) {
-			adj = new Pixel[2];;
-			adj[0] = new Pixel(pixel.x - 1, pixel.y + 1, energy[pixel.x - 1][pixel.y + 1]);
-			adj[1] = new Pixel(pixel.x, pixel.y + 1, energy[pixel.x][pixel.y + 1]);
+	double[][] adj(int x, int y) {
+		double[][] adj;
+		if (x == 0) {
+			adj = new double[2][2];
+			adj[0] = new double[] {x, y + 1 };
+			adj[1] = new double[] {x + 1, y + 1};
+		} else if (x == picture.width() - 1) {
+			adj = new double[2][2];
+			adj[0] = new double[] {x - 1, y + 1};
+			adj[1] = new double[] {x, y + 1};
 		} else {
-			adj = new Pixel[2];
-			adj[0] = new Pixel(pixel.x - 1, pixel.y + 1, energy[pixel.x - 1][pixel.y + 1]);
-			adj[1] = new Pixel(pixel.x, pixel.y + 1, energy[pixel.x][pixel.y + 1]);
-			adj[2] = new Pixel (pixel.x + 1, pixel.y + 1, energy[pixel.x + 1][pixel.y + 1]);
+			adj = new double[3][2];
+			adj[0] = new double[] {x - 1, y + 1};
+			adj[1] = new double[] {x, y + 1};
+			adj[2] = new double[] {x + 1, y + 1};
 		}
 		return adj;
 	}
