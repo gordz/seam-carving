@@ -1,10 +1,10 @@
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import java.awt.Color;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -22,6 +22,16 @@ public class SeamCarverTest {
 	@Test (expected = IndexOutOfBoundsException.class)
 	public void energy_ShouldThrowIndexOutOfBoundsException_WhenXLessThan_0() {
 		seamCarver.energy(-1, 1);
+	}
+	
+	@Test (expected = IndexOutOfBoundsException.class)
+	public void energy_ShouldThrowIndexOutOfBoundsException_WhenXGreaterThanWidth() {
+		seamCarver.energy(11, 1);
+	}
+	
+	@Test (expected = IndexOutOfBoundsException.class)
+	public void energy_ShouldThrowIndexOutOfBoundsException_WhenYGreaterThanHeight() {
+		seamCarver.energy(1, 21);
 	}
 	
 	@Test (expected = IndexOutOfBoundsException.class)
@@ -129,6 +139,14 @@ public class SeamCarverTest {
 		assertArrayEquals(new int[] { 0, 1, 1, 1, 1, 1, 0}, seam);
 	}
 	
+	@Test
+	public void findHorizontalSeam_ShouldReturnSeam_For3x7_WhenImageIsNotEmpty() {
+		Picture picture = new Picture("seamCarving/3x7.png");
+		SeamCarver seamCarver = new SeamCarver(picture);
+		int[] seam = seamCarver.findHorizontalSeam();
+		assertArrayEquals(new int[] { 1, 2, 1}, seam);
+	}
+	
 	@Test (expected = IllegalArgumentException.class)
 	public void removeVerticalSeam_ShouldThrowIllegalArgumentException_WhenAdjacentSeamVerticesDifferByMoreThan_1() {
 		Picture picture = new Picture("seamCarving/6x5.png");
@@ -143,75 +161,29 @@ public class SeamCarverTest {
 		seamCarver.removeHorizontalSeam(new int[] {0, 0, 2, 0, 0, 0});
 	}
 	
+	// TODO update energy calculations.
+	@Ignore 
 	@Test
-	public void adj_ShouldReturnAdjacentVerticesInLastRow_WhenOnSecondLastRow() {
-		Picture picture = new Picture("6x5.png");
-		SeamCarver seamCarver = new SeamCarver(picture);
+	public void removeVerticalSeam_ShouldRemoveVerticalSeam() {
+		Picture picture = new Picture(PICTURE_6x5);
+		SeamCarver carver = new SeamCarver(picture);
+		carver.removeVerticalSeam(carver.findVerticalSeam());
 		
-		assertEquals(seamCarver.adj(19)[0], 25);
-		assertEquals(seamCarver.adj(19)[1], 26);
+		// Check dimentions.
+		assertThat(carver.picture().width(), equalTo(5));
+		assertThat(carver.picture().height(), equalTo(5));
 		
-		assertEquals(seamCarver.adj(20)[0], 25);
-		assertEquals(seamCarver.adj(20)[1], 26);
-		assertEquals(seamCarver.adj(20)[2], 27);
+		// Check energy.
+		assertThat(carver.energy(1,1), equalTo(23346D));
+		assertThat(carver.energy(2,1), equalTo(51304D));
+		assertThat(carver.energy(3,1), equalTo(55112D));
 		
-		assertEquals(seamCarver.adj(21)[0], 26);
-		assertEquals(seamCarver.adj(21)[1], 27);
-		assertEquals(seamCarver.adj(21)[2], 28);
+		assertThat(carver.energy(1,2), equalTo(47908D));
+		assertThat(carver.energy(2,2), equalTo(61346D));
+		assertThat(carver.energy(3,2), equalTo(38887D));
 		
-		assertEquals(seamCarver.adj(22)[0], 27);
-		assertEquals(seamCarver.adj(22)[1], 28);
-		assertEquals(seamCarver.adj(22)[2], 29);
-		
-		assertEquals(seamCarver.adj(23)[0], 28);
-		assertEquals(seamCarver.adj(23)[1], 29);
-		assertEquals(seamCarver.adj(23)[2], 30);
-		
-		assertEquals(seamCarver.adj(24)[0], 29);
-		assertEquals(seamCarver.adj(24)[1], 30);
-	}
-
-	
-	@Test
-	public void adj_ShouldReturnAdjacentVerticesForNextRow_WhenNotOnLastRow() {
-		Picture picture = new Picture("6x5.png");
-		SeamCarver seamCarver = new SeamCarver(picture);
-		
-		assertEquals(seamCarver.adj(1)[0], 7);
-		assertEquals(seamCarver.adj(1)[1], 8);
-		
-		assertEquals(seamCarver.adj(2)[0], 7);
-		assertEquals(seamCarver.adj(2)[1], 8);
-		assertEquals(seamCarver.adj(2)[2], 9);
-		
-		assertEquals(seamCarver.adj(3)[0], 8);
-		assertEquals(seamCarver.adj(3)[1], 9);
-		assertEquals(seamCarver.adj(3)[2], 10);
-		
-		assertEquals(seamCarver.adj(4)[0], 9);
-		assertEquals(seamCarver.adj(4)[1], 10);
-		assertEquals(seamCarver.adj(4)[2], 11);
-		
-		assertEquals(seamCarver.adj(5)[0], 10);
-		assertEquals(seamCarver.adj(5)[1], 11);
-		assertEquals(seamCarver.adj(5)[2], 12);
-		
-		assertEquals(seamCarver.adj(6)[0], 11);
-		assertEquals(seamCarver.adj(6)[1], 12);
-	}
-	
-	@Test
-	public void adj_ShouldReturnVirtualPixel_WhenOnLastRow() {
-		Picture picture = new Picture("6x5.png");
-		SeamCarver seamCarver = new SeamCarver(picture);
-		
-		assertEquals(seamCarver.adj(25)[0], 31);
-		assertEquals(seamCarver.adj(26)[0], 31);
-		assertEquals(seamCarver.adj(27)[0], 31);
-		assertEquals(seamCarver.adj(28)[0], 31);
-		assertEquals(seamCarver.adj(29)[0], 31);
-		assertEquals(seamCarver.adj(30)[0], 31);
-	}
-
-	
+		assertThat(carver.energy(1,3), equalTo(31400D));
+		assertThat(carver.energy(2,3), equalTo(37927D));
+		assertThat(carver.energy(3,3), equalTo(63076D));
+	}	
 }
