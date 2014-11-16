@@ -86,10 +86,19 @@ public class SeamCarver {
 	 */
 	public int[] findHorizontalSeam() {
 		// Transpose image.
+		double[][] eneryBefore = energy;
+		Picture pictureBefore = picture;
+		
 		final Picture transposed = transpose(picture);
 		this.picture = transposed;
 		energy = calculateEnergyMatrix(transposed);
-		return findVerticalSeam(transposed);
+		
+		int[] seam = findVerticalSeam(transposed);
+	
+		this.picture = pictureBefore;
+		this.energy = eneryBefore;
+		
+		return seam;
 	}
 	
 	/**
@@ -268,10 +277,13 @@ public class SeamCarver {
 		
 		validateSeam(seam);
 		
-		Picture transposed = transpose(picture);
-		double[][] transposedEnergy = calculateEnergyMatrix(transposed);
+		this.picture = transpose(picture);
+		this.energy = calculateEnergyMatrix(picture);
 		
+		removeVerticalSeam(seam);
 		
+		this.picture = transpose(picture);
+		this.energy = calculateEnergyMatrix(this.picture);
 	}
 	
 	/**
