@@ -30,7 +30,7 @@ public class SeamCarver {
 	 * @return
 	 */
 	public int width()  {
-		return -1;
+		return picture.width();
 	}
 	
 	/**
@@ -38,7 +38,7 @@ public class SeamCarver {
 	 * @return
 	 */
 	public int height() {
-		return -1;
+		return picture.height();
 	}
 	
 	/**
@@ -86,7 +86,17 @@ public class SeamCarver {
 	 * @return
 	 */
 	public int[] findHorizontalSeam() {
-		int[] seam = new int[picture.width()];
+		final int[] seam = new int[picture.width()];
+		
+		// Transpose image.
+		final Picture transposed = new Picture(picture.height(), picture.width());
+		for (int y = 0; y < picture.height(); y++) {
+			for (int x = 0; x < picture.width(); x++) {
+				transposed.set(y, x, picture.get(x, y));
+			}
+		}
+		
+		
 		return seam;
 	}
 	
@@ -95,7 +105,7 @@ public class SeamCarver {
 	 * @return
 	 */
 	public int[] findVerticalSeam() {
-		final int[] seam = new int[picture.height()];
+		
 		
 		int[] edgeTo = new int[(picture.width() * picture.height()) + 2];
 		double[] distTo = new double[(picture.width() * picture.height()) + 2];
@@ -115,51 +125,30 @@ public class SeamCarver {
 			edgeTo[adjacent] = 0;
 		}
 
-	
-		
 		for (int vertex = 1; vertex <= (picture.width() * picture.height()) + 1; vertex++) {
 			int[] adj = adj(vertex);
 			for (int adjacent : adj) {
-				if (distTo[vertex] + energy(adjacent) <= distTo[adjacent]) {
+				if (distTo[vertex] + energy(adjacent) < distTo[adjacent]) {
 					distTo[adjacent] = distTo[vertex] + energy(adjacent);
 					edgeTo[adjacent] = vertex;
 				}
 			}
 		}
 		
-		int finalVertex = pixelToVertex(picture.width() - 1, picture.height() - 1) + 1;
+		int finalVertex = edgeTo[pixelToVertex(picture.width() - 1, picture.height() - 1) + 1];
+	
 		Stack<Integer> path = new Stack<Integer>();
 		for (int v = finalVertex; v != 0; v = edgeTo[v]) {
 			path.push(v);
 		}
 		
-		
-		for (int i = 1; i <= 6; i++) {
-			System.out.print(distTo[i] + " ");
+		final int[] seam = new int[path.size()];
+ 		for (int i = 0; i < seam.length; i++) {
+ 			int vertex = path.pop();
+ 			System.out.println("Vertex: " + vertex + ", Pixel: " + vertexToPixel(vertex));
+			seam[i] = vertexToPixel(vertex).x;
 		}
-		System.out.println();
-		
-		for (int i = 7; i <= 12; i++) {
-			System.out.print(distTo[i] + " ");
-		}
-		System.out.println();
-		
-		for (int i = 13; i <= 18; i++) {
-			System.out.print(distTo[i] + " ");
-		}
-		System.out.println();
-		
-		for (int i = 19; i <= 24; i++) {
-			System.out.print(distTo[i] + " ");
-		}
-		System.out.println();
-		
-		for (int i = 25; i <= 30; i++) {
-			System.out.print(distTo[i] + " ");
-		}
-		System.out.println();
-		
-		return null;
+ 		return seam;
 	}
 	
 	double energy(int vertex) {
@@ -281,6 +270,16 @@ public class SeamCarver {
 		if (seam == null) {
 			throw new NullPointerException("seam must not be null.");
 		}
+		
+		if (picture.height() <= 1) {
+			throw new IllegalArgumentException("Image height is <= 1, no more seams to remove.");
+		}
+		
+		if (seam.length > picture.width()) {
+			throw new IllegalArgumentException("Seam length exceeds image width.");
+		}
+		
+		validateSeam(seam);
 	}
 	
 	/**
@@ -292,13 +291,32 @@ public class SeamCarver {
 		if (seam == null) {
 			throw new NullPointerException("seam must not be null.");
 		}
-	}
-
-	
-	EdgeWeightedDigraph constructDigraph() {
-		// TODO Auto-generated method stub
-		return new EdgeWeightedDigraph(picture.height() * picture.width());
 		
+		if (seam.length > picture.height()) {
+			throw new IllegalArgumentException("Seam length exceeds image height.");
+		}
+		
+		if (picture.width() <= 1) {
+			throw new IllegalArgumentException("Image width is <= 1, no more seams to remove.");
+		}
+		
+		validateSeam(seam);
+		
+		Picture carvedImage = new Picture(picture.width() - 1, picture.height());
+		
+	}
+	
+	/**
+	 * Validate that a seam has no invalid entries.
+	 * @param seam
+	 * @throws InvalidArgumentException If the seam contains invalid entries.
+	 */
+	private void validateSeam(int[] seam) {
+		for (int i = 0; i < seam.length - 1; i++) {
+			if (Math.abs(seam[i] - seam[i + 1]) > 1) {
+				throw new IllegalArgumentException("Seam contains invalid entries.");
+			}
+		}
 	}
 }
 

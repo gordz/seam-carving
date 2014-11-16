@@ -5,7 +5,6 @@ import static org.junit.Assert.assertThat;
 
 import java.awt.Color;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 
@@ -14,6 +13,9 @@ public class SeamCarverTest {
 	
 	private Picture picture = new Picture(10,20);
 	
+	public static final Picture PICTURE_6x5 = new Picture("seamCarving/6x5.png");
+	public static final Picture PICTURE_1x5 = new Picture(1,5);
+	public static final Picture PICTURE_5x1 = new Picture(5,1);
 	
 	private SeamCarver seamCarver = new SeamCarver(picture);
 	
@@ -35,6 +37,18 @@ public class SeamCarverTest {
 	@Test (expected = NullPointerException.class) 
 	public void removeVerticalSeam_ShouldThrowNullPointerException_WhenArgIsNull() {
 		seamCarver.removeVerticalSeam(null);
+	}
+	
+	@Test
+	public void width_ShouldReturnImageWidth() {
+		SeamCarver seamCarver = new SeamCarver(PICTURE_6x5);
+		assertThat(seamCarver.width(), equalTo(6));
+	}
+	
+	@Test
+	public void height_ShouldReturnImageHeight() {
+		SeamCarver seamCarver = new SeamCarver(PICTURE_6x5);
+		assertThat(seamCarver.height(), equalTo(5));
 	}
 	
 	@Test
@@ -77,30 +91,56 @@ public class SeamCarverTest {
 	
 	@Test (expected = IllegalArgumentException.class)
 	public void removeHorizonalSeam_ShouldThrowIllegalArgumentException_WhenPictureHeightEqualTo_1() {
-		Assert.fail();
+		SeamCarver carver = new SeamCarver(PICTURE_5x1);
+		carver.removeHorizontalSeam(new int[] {0, 0, 0, 0, 0});
 	}
 	
 	@Test (expected = IllegalArgumentException.class)
-	public void removeHorizonalSeam_ShouldThrowIllegalArgumentException_WhenPictureHeightEqualTo_0() {
-		Assert.fail();
+	public void removeHorizonatlSeam_ShouldThrowIllegalArgumentException_WhenSeamLengthExceedsImageWidth() {
+		SeamCarver carver = new SeamCarver(PICTURE_6x5);
+		carver.removeHorizontalSeam(new int[PICTURE_6x5.width() + 1]);
 	}
 	
 	@Test (expected = IllegalArgumentException.class)
 	public void removeVerticalSeam_ShouldThrowIllegalArgumentException_WhenPictureWidthEqualTo_1() {
-		Assert.fail();
+		SeamCarver carver = new SeamCarver(PICTURE_1x5);
+		carver.removeVerticalSeam(new int[] {0, 0, 0, 0, 0});
 	}
 	
 	@Test (expected = IllegalArgumentException.class)
-	public void removeVerticalSeam_ShouldThrowIllegalArgumentException_WhenPictureHWidthEqualTo_0() {
-		Assert.fail();
+	public void removeVerticalSeam_ShouldThrowIllegalArgumentException_WhenSeamLengthExceedsImageHeight() {
+		SeamCarver carver = new SeamCarver(PICTURE_6x5);
+		carver.removeVerticalSeam(new int[PICTURE_6x5.height() + 1]);
 	}
 	
 	@Test
-	public void findVerticalSeam_ShouldReturnSeam_WhenImageIsNotEmpty() {
-		Picture picture = new Picture("6x5.png");
+	public void findVerticalSeam_ShouldReturnSeam_For6x5_WhenImageIsNotEmpty() {
+		Picture picture = new Picture("seamCarving/6x5.png");
 		SeamCarver seamCarver = new SeamCarver(picture);
 		int[] seam = seamCarver.findVerticalSeam();
 		assertArrayEquals(new int[] { 2, 3, 3, 3, 2 }, seam);
+	}
+	
+	@Test
+	public void findVerticalSeam_ShouldReturnSeam_For3x7_WhenImageIsNotEmpty() {
+		Picture picture = new Picture("seamCarving/3x7.png");
+		SeamCarver seamCarver = new SeamCarver(picture);
+		int[] seam = seamCarver.findVerticalSeam();
+		assertArrayEquals(new int[] { 0, 1, 1, 1, 1, 1, 0}, seam);
+	}
+	
+	@Test (expected = IllegalArgumentException.class)
+	public void removeVerticalSeam_ShouldThrowIllegalArgumentException_WhenAdjacentSeamVerticesDifferByMoreThan_1() {
+		Picture picture = new Picture("seamCarving/6x5.png");
+		SeamCarver seamCarver = new SeamCarver(picture);
+		seamCarver.removeVerticalSeam(new int[] {0, 0, 2, 0, 0});
+	}
+	
+	@Test (expected = IllegalArgumentException.class)
+	public void removeHorizontalSeam_ShouldThrowIllegalArgumentException_WhenAdjacentSeamVerticesDifferByMoreThan_1() {
+		Picture picture = new Picture("seamCarving/6x5.png");
+		SeamCarver seamCarver = new SeamCarver(picture);
+		seamCarver.removeHorizontalSeam(new int[] {0, 0, 2, 0, 0, 0});
 	}
 	
 	@Test
