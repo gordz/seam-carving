@@ -4,10 +4,9 @@ import java.awt.Color;
 
 public class SeamCarver {
 	
-	
 	private Picture picture;
 	private double[][] energy;
-
+	
 	/**
 	 * create a seam carver object based on the given picture
 	 * @param picture
@@ -22,7 +21,7 @@ public class SeamCarver {
 	 * @return
 	 */
 	public Picture picture() {
-		return null;
+		return picture;
 	}
 	
 	/**
@@ -30,7 +29,7 @@ public class SeamCarver {
 	 * @return
 	 */
 	public int width()  {
-		return -1;
+		return picture.width();
 	}
 	
 	/**
@@ -38,7 +37,7 @@ public class SeamCarver {
 	 * @return
 	 */
 	public int height() {
-		return -1;
+		return picture.height();
 	}
 	
 	/**
@@ -49,11 +48,11 @@ public class SeamCarver {
 	 * @throws IndexOutOfBoundsException If the x or y indexes are out of bounds.
 	 */
 	public double energy(int x, int y) {
-		if (x < 0 || x > picture.width()) {
+		if (x < 0 || x > picture.width() - 1) {
 			throw new IndexOutOfBoundsException("x index ouf of bounds.");
 		}
 		
-		if (y < 0 || y > picture.height()) {
+		if (y < 0 || y > picture.height() - 1) {
 			throw new IndexOutOfBoundsException("y index ouf of bounds.");
 		}
 		
@@ -86,8 +85,79 @@ public class SeamCarver {
 	 * @return
 	 */
 	public int[] findHorizontalSeam() {
-		int[] seam = new int[picture.width()];
+		// Transpose image.
+		double[][] eneryBefore = energy;
+		Picture pictureBefore = picture;
+		
+		final Picture transposed = transpose(picture);
+		this.picture = transposed;
+		energy = calculateEnergyMatrix(transposed);
+		
+		int[] seam = findVerticalSeam(transposed);
+	
+		this.picture = pictureBefore;
+		this.energy = eneryBefore;
+		
 		return seam;
+	}
+	
+	/**
+	 * Transpose a Picture.
+	 * @param picture
+	 * @return
+	 */
+	private Picture transpose(final Picture picture) {
+		final Picture transposed = new Picture(picture.height(), picture.width());
+		for (int y = 0; y < picture.height(); y++) {
+			for (int x = 0; x < picture.width(); x++) {
+				transposed.set(y, x, picture.get(x, y));
+			}
+		}
+		return transposed;
+	}
+	
+	private int[] findVerticalSeam(Picture image) {
+		int[] edgeTo = new int[(image.width() * image.height()) + 2];
+		double[] distTo = new double[(image.width() * image.height()) + 2];
+		
+		for (int i = 0; i <= (image.width() * image.height()) + 1; i++) {
+			edgeTo[i] = -1;
+			distTo[i] = Double.POSITIVE_INFINITY;
+		}
+	
+		// Initialise source vertex.
+		distTo[0] = 0;
+		edgeTo[0] = -1;
+		
+		int[] adji = adj(0);
+		for (int adjacent : adji) {
+			distTo[adjacent] = 195075;
+			edgeTo[adjacent] = 0;
+		}
+
+		for (int vertex = 1; vertex <= (image.width() * image.height()) + 1; vertex++) {
+			int[] adj = adj(vertex);
+			for (int adjacent : adj) {
+				if (distTo[vertex] + energy(adjacent) < distTo[adjacent]) {
+					distTo[adjacent] = distTo[vertex] + energy(adjacent);
+					edgeTo[adjacent] = vertex;
+				}
+			}
+		}
+		
+		int finalVertex = edgeTo[pixelToVertex(image.width() - 1, image.height() - 1) + 1];
+	
+		Stack<Integer> path = new Stack<Integer>();
+		for (int v = finalVertex; v != 0; v = edgeTo[v]) {
+			path.push(v);
+		}
+		
+		final int[] seam = new int[path.size()];
+ 		for (int i = 0; i < seam.length; i++) {
+ 			int vertex = path.pop();
+ 			seam[i] = vertexToPixel(vertex).x;
+		}
+ 		return seam;
 	}
 	
 	/**
@@ -95,72 +165,79 @@ public class SeamCarver {
 	 * @return
 	 */
 	public int[] findVerticalSeam() {
-		final int[] seam = new int[picture.height()];
-		
-		double[] edgeTo = new double[(picture.height() * picture.width())];
-		double[] distTo = new double[(picture.height() * picture.width())];
-		
-		for (int i = 0; i < distTo.length; i++) {
-			distTo[i] = Double.POSITIVE_INFINITY;
-			edgeTo[i] = Double.POSITIVE_INFINITY;
-		}
-		
-		MinPQ<Pixel> minPQ = new MinPQ<SeamCarver.Pixel>();
-		
-		// Handle first row.
-		for (int i = 0; i < picture.width(); i++) {
-			distTo[i] = energy[i][0];
-			minPQ.insert(new Pixel(i, 0, energy[i][0]));
-		}
-		
-		while (!minPQ.isEmpty()) {
-			Pixel pixel = minPQ.delMin();
+		return findVerticalSeam(picture);
+	}
+	
+	private double energy(int vertex) {
+		if (vertex == 0 || vertex == ((picture.width() * picture.height()) + 1)) {
+			return 0;
 			
 		}
+		Pixel pixel = vertexToPixel(vertex);
+		return energy[pixel.y][pixel.x];
 	}
 	
-	private void relax(Pixel pixel, MinPQ<Pixel> minPQ) {
-		for (Pixel adjacent : adj(pixel)) {
-			minPQ.insert(adjacent);
-			if ()
-		}
-		
-	}
 	
-	static class Pixel implements Comparable<Pixel> {
-		
-		private final int x;
-		private final int y;
-		private final double energy;
-		
-		Pixel(final int x, final int y, final double energy) {
+ 
+	private static class Pixel {
+		int x;
+		int y;
+	
+		public Pixel(int x, int y) {
 			this.x = x;
 			this.y = y;
-			this.energy = energy;
-		}
-
-		public int compareTo(Pixel o) {
-			return Double.compare(energy, o.energy);
 		}
 		
-		
+		@Override
+		public String toString() {
+			return "Pixel (" + x + ", " + y + ")";
+		}
 	}
 	
-	Pixel[] adj(Pixel pixel) {
-		Pixel[] adj;
-		if (pixel.x == 0) {
-			adj = new Pixel[2];
-			adj[0] = new Pixel (pixel.x, pixel.y + 1, energy[pixel.x][pixel.y + 1]);
-			adj[1] = new Pixel (pixel.x + 1, pixel.y + 1, energy[pixel.x + 1][pixel.y + 1]);
-		} else if (pixel.x == picture.width() - 1) {
-			adj = new Pixel[2];;
-			adj[0] = new Pixel(pixel.x - 1, pixel.y + 1, energy[pixel.x - 1][pixel.y + 1]);
-			adj[1] = new Pixel(pixel.x, pixel.y + 1, energy[pixel.x][pixel.y + 1]);
+	private Pixel vertexToPixel(int vertex) {
+		int x = ((vertex - 1) % picture.width());
+		int y = ((vertex - 1) / picture.width());
+		return new Pixel(x, y);
+	}
+
+	private int pixelToVertex(int x, int y) {
+		return (y * picture.width()) + x + 1;
+	}
+	
+	
+	private int[] adj(int vertex) {
+		
+		if (vertex == 0) {
+			int[] adj = new int[picture.width()];
+			for (int i = 0 ; i < picture.width(); i++) {
+				adj[i] = i + 1;
+			}
+			return adj;
+		} else if (vertex == (picture.width() * picture.height()) + 1) {
+			return new int[0];
+		} else if (vertex > ((picture.width() * picture.height()) - picture.width())) {
+			return new int[] {(picture.width() * picture.height()) + 1};
+		}
+		
+		
+		Pixel pixel = vertexToPixel(vertex);
+		int x = pixel.x;
+		int y = pixel.y;
+		
+		int[] adj;
+		if (x == 0) {
+			adj = new int[2];
+			adj[0] = pixelToVertex(x, y + 1);
+			adj[1] = pixelToVertex(x + 1, y + 1);
+		} else if (x == picture.width() - 1) {
+			adj = new int[2];
+			adj[0] = pixelToVertex(x - 1, y + 1);
+			adj[1] = pixelToVertex(x, y + 1);
 		} else {
-			adj = new Pixel[2];
-			adj[0] = new Pixel(pixel.x - 1, pixel.y + 1, energy[pixel.x - 1][pixel.y + 1]);
-			adj[1] = new Pixel(pixel.x, pixel.y + 1, energy[pixel.x][pixel.y + 1]);
-			adj[2] = new Pixel (pixel.x + 1, pixel.y + 1, energy[pixel.x + 1][pixel.y + 1]);
+			adj = new int[3];
+			adj[0] = pixelToVertex(x - 1, y + 1);
+			adj[1] = pixelToVertex(x, y + 1);
+			adj[2] = pixelToVertex(x + 1, y + 1);
 		}
 		return adj;
 	}
@@ -171,10 +248,10 @@ public class SeamCarver {
 	 * @return
 	 */
 	private double[][] calculateEnergyMatrix(final Picture picture) {
-		final double[][] energy = new double[picture.width()][picture.height()];
+		final double[][] energy = new double[picture.height()][picture.width()];
 		for (int x = 0; x < picture.width(); x++) {
 			for (int y = 0; y < picture.height(); y++) {
-				energy[x][y] = energy(x, y);
+				energy[y][x] = energy(x, y);
 			}
 		}
 		return energy;
@@ -189,6 +266,24 @@ public class SeamCarver {
 		if (seam == null) {
 			throw new NullPointerException("seam must not be null.");
 		}
+		
+		if (picture.height() <= 1) {
+			throw new IllegalArgumentException("Image height is <= 1, no more seams to remove.");
+		}
+		
+		if (seam.length > picture.width()) {
+			throw new IllegalArgumentException("Seam length exceeds image width.");
+		}
+		
+		validateSeam(seam);
+		
+		this.picture = transpose(picture);
+		this.energy = calculateEnergyMatrix(picture);
+		
+		removeVerticalSeam(seam);
+		
+		this.picture = transpose(picture);
+		this.energy = calculateEnergyMatrix(this.picture);
 	}
 	
 	/**
@@ -200,13 +295,53 @@ public class SeamCarver {
 		if (seam == null) {
 			throw new NullPointerException("seam must not be null.");
 		}
-	}
-
-	
-	EdgeWeightedDigraph constructDigraph() {
-		// TODO Auto-generated method stub
-		return new EdgeWeightedDigraph(picture.height() * picture.width());
 		
+		if (seam.length > picture.height()) {
+			throw new IllegalArgumentException("Seam length exceeds image height.");
+		}
+		
+		if (picture.width() <= 1) {
+			throw new IllegalArgumentException("Image width is <= 1, no more seams to remove.");
+		}
+		
+		validateSeam(seam);
+		
+		Picture carvedImage = new Picture(picture.width() - 1, picture.height());
+		
+		// Remove seam and create new image.
+		for (int y = 0; y < picture.height(); y++) {
+			// For each row.
+			int newX = 0;
+			for (int x = 0; x < picture.width(); x++) {
+				// Ensure seam index is within the image bounds.
+				if (seam[y] < 0 || seam[y] > picture.width() - 1) {
+					throw new IllegalArgumentException("Seam index out of bounds.");
+				}
+				
+				if (seam[y] == x) {
+					continue;
+				} else {
+					carvedImage.set(newX++, y, picture.get(x, y));
+				}
+			}
+		}
+		picture = carvedImage;
+		
+		// Recalculate energy
+		energy = calculateEnergyMatrix(carvedImage);
+	}
+	
+	/**
+	 * Validate that a seam has no invalid entries.
+	 * @param seam
+	 * @throws InvalidArgumentException If the seam contains invalid entries.
+	 */
+	private void validateSeam(int[] seam) {
+		for (int i = 0; i < seam.length - 1; i++) {
+			if (Math.abs(seam[i] - seam[i + 1]) > 1) {
+				throw new IllegalArgumentException("Seam contains invalid entries.");
+			}
+		}
 	}
 }
 
