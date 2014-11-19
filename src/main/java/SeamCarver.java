@@ -4,16 +4,26 @@ import java.awt.Color;
 
 public class SeamCarver {
 	
-	private Picture picture;
+	private int[][] image;
 	private double[][] energy;
+	private int width;
+	private int height;
+	private boolean transposed = false;
 	
 	/**
 	 * create a seam carver object based on the given picture
 	 * @param picture
 	 */
 	public SeamCarver(final Picture picture)  {
-		this.picture = new Picture(picture);
-		this.energy = calculateEnergyMatrix(this.picture);
+		image = new int[picture.width()][picture.height()];
+		for (int x = 0; x < picture.width(); x++) {;
+			for (int y = 0; y < picture.height(); y++) {
+				image[x][y] = picture.get(x, y).getRGB();
+			}
+		}
+		this.width = picture.width();
+		this.height = picture.height();
+		this.energy = calculateEnergyMatrix();
 	}
 	
 	/**
@@ -21,6 +31,16 @@ public class SeamCarver {
 	 * @return
 	 */
 	public Picture picture() {
+		if (transposed) {
+			transpose();
+		}
+		
+		final Picture picture = new Picture(width, height);
+		for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				picture.set(x, y, new Color(image[x][y]));
+			}
+		}
 		return picture;
 	}
 	
@@ -29,7 +49,7 @@ public class SeamCarver {
 	 * @return
 	 */
 	public int width()  {
-		return picture.width();
+		return width;
 	}
 	
 	/**
@@ -37,7 +57,7 @@ public class SeamCarver {
 	 * @return
 	 */
 	public int height() {
-		return picture.height();
+		return height;
 	}
 	
 	/**
@@ -48,23 +68,23 @@ public class SeamCarver {
 	 * @throws IndexOutOfBoundsException If the x or y indexes are out of bounds.
 	 */
 	public double energy(int x, int y) {
-		if (x < 0 || x > picture.width() - 1) {
+		if (x < 0 || x > width - 1) {
 			throw new IndexOutOfBoundsException("x index ouf of bounds.");
 		}
 		
-		if (y < 0 || y > picture.height() - 1) {
+		if (y < 0 || y > height - 1) {
 			throw new IndexOutOfBoundsException("y index ouf of bounds.");
 		}
 		
 		// Edge pixels have energe 255^2 + 255^2 + 255^2.
-		if (x == 0 || y == 0 || x == picture.width() -1 || y == picture.height() - 1) {
+		if (x == 0 || y == 0 || x == width -1 || y == height - 1) {
 			return 195075;	
 		}
 
-		final Color leftPixel = picture.get(x - 1, y);
-		final Color rightPixel = picture.get(x + 1, y);
-		final Color topPixel = picture.get(x, y - 1);
-		final Color bottomPixel = picture.get(x, y + 1);
+		final Color leftPixel = new Color(image[x - 1][y]);
+		final Color rightPixel = new Color(image[x + 1][y]);
+		final Color topPixel = new Color(image[x][y - 1]);
+		final Color bottomPixel = new Color(image[x][y + 1]);
 		
 		final int rX = Math.abs(leftPixel.getRed() - rightPixel.getRed());
 		final int bX = Math.abs(leftPixel.getBlue() - rightPixel.getBlue());
@@ -85,42 +105,18 @@ public class SeamCarver {
 	 * @return
 	 */
 	public int[] findHorizontalSeam() {
-		// Transpose image.
-		double[][] eneryBefore = energy;
-		Picture pictureBefore = picture;
-		
-		final Picture transposed = transpose(picture);
-		this.picture = transposed;
-		energy = calculateEnergyMatrix(transposed);
-		
-		int[] seam = findVerticalSeam(transposed);
-	
-		this.picture = pictureBefore;
-		this.energy = eneryBefore;
-		
-		return seam;
-	}
-	
-	/**
-	 * Transpose a Picture.
-	 * @param picture
-	 * @return
-	 */
-	private Picture transpose(final Picture picture) {
-		final Picture transposed = new Picture(picture.height(), picture.width());
-		for (int y = 0; y < picture.height(); y++) {
-			for (int x = 0; x < picture.width(); x++) {
-				transposed.set(y, x, picture.get(x, y));
-			}
+		if (!transposed) {
+			transpose();
 		}
-		return transposed;
+		
+		return findSeam();
 	}
 	
-	private int[] findVerticalSeam(Picture image) {
-		int[] edgeTo = new int[(image.width() * image.height()) + 2];
-		double[] distTo = new double[(image.width() * image.height()) + 2];
+	private int[] findSeam() {
+		int[] edgeTo = new int[(width * height) + 2];
+		double[] distTo = new double[(width * height) + 2];
 		
-		for (int i = 0; i <= (image.width() * image.height()) + 1; i++) {
+		for (int i = 0; i < (width * height) + 2; i++) {
 			edgeTo[i] = -1;
 			distTo[i] = Double.POSITIVE_INFINITY;
 		}
@@ -135,7 +131,7 @@ public class SeamCarver {
 			edgeTo[adjacent] = 0;
 		}
 
-		for (int vertex = 1; vertex <= (image.width() * image.height()) + 1; vertex++) {
+		for (int vertex = 1; vertex < (width * height) + 2; vertex++) {
 			int[] adj = adj(vertex);
 			for (int adjacent : adj) {
 				if (distTo[vertex] + energy(adjacent) < distTo[adjacent]) {
@@ -145,7 +141,7 @@ public class SeamCarver {
 			}
 		}
 		
-		int finalVertex = edgeTo[pixelToVertex(image.width() - 1, image.height() - 1) + 1];
+		int finalVertex = edgeTo[pixelToVertex(width - 1, height - 1) + 1];
 	
 		Stack<Integer> path = new Stack<Integer>();
 		for (int v = finalVertex; v != 0; v = edgeTo[v]) {
@@ -160,21 +156,52 @@ public class SeamCarver {
  		return seam;
 	}
 	
+	
+	private void transpose() {
+		System.out.println("Transposing image. Original width :" + width + ", height: " + height);
+		int[][] transposedImage = new int[image[0].length][image.length];
+		double[][] transposedEnergy = new double[energy[0].length][energy.length];
+		
+		for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				transposedImage[y][x] = image[x][y];
+				transposedEnergy[y][x] = energy[x][y];
+			}
+		}
+		
+		// Swap width and height.
+		int tempWidth = this.width;
+		this.width = this.height;
+		this.height = tempWidth;
+		
+		if (transposed) {
+			transposed = false;
+		} else {
+			transposed = true;
+		}
+		
+		image = transposedImage;
+		energy = transposedEnergy;
+	}
+	
 	/**
 	 * sequence of indices for vertical seam
 	 * @return
 	 */
 	public int[] findVerticalSeam() {
-		return findVerticalSeam(picture);
+		if (transposed) {
+			transpose();
+		}
+		return findSeam();
 	}
 	
 	private double energy(int vertex) {
-		if (vertex == 0 || vertex == ((picture.width() * picture.height()) + 1)) {
+		if (vertex == 0 || vertex == (width * height) + 1) {
 			return 0;
 			
 		}
 		Pixel pixel = vertexToPixel(vertex);
-		return energy[pixel.y][pixel.x];
+		return energy[pixel.x][pixel.y];
 	}
 	
 	
@@ -195,28 +222,28 @@ public class SeamCarver {
 	}
 	
 	private Pixel vertexToPixel(int vertex) {
-		int x = ((vertex - 1) % picture.width());
-		int y = ((vertex - 1) / picture.width());
+		int x = ((vertex - 1) % width);
+		int y = ((vertex - 1) / width);
 		return new Pixel(x, y);
 	}
 
 	private int pixelToVertex(int x, int y) {
-		return (y * picture.width()) + x + 1;
+		return (y * width) + x + 1;
 	}
 	
 	
 	private int[] adj(int vertex) {
 		
 		if (vertex == 0) {
-			int[] adj = new int[picture.width()];
-			for (int i = 0 ; i < picture.width(); i++) {
+			int[] adj = new int[width];
+			for (int i = 0 ; i < width; i++) {
 				adj[i] = i + 1;
 			}
 			return adj;
-		} else if (vertex == (picture.width() * picture.height()) + 1) {
+		} else if (vertex == (width * height) + 1) {
 			return new int[0];
-		} else if (vertex > ((picture.width() * picture.height()) - picture.width())) {
-			return new int[] {(picture.width() * picture.height()) + 1};
+		} else if (vertex > ((width * height) - width)) {
+			return new int[] {(width * height) + 1};
 		}
 		
 		
@@ -229,7 +256,7 @@ public class SeamCarver {
 			adj = new int[2];
 			adj[0] = pixelToVertex(x, y + 1);
 			adj[1] = pixelToVertex(x + 1, y + 1);
-		} else if (x == picture.width() - 1) {
+		} else if (x == width - 1) {
 			adj = new int[2];
 			adj[0] = pixelToVertex(x - 1, y + 1);
 			adj[1] = pixelToVertex(x, y + 1);
@@ -247,14 +274,66 @@ public class SeamCarver {
 	 * @param picture
 	 * @return
 	 */
-	private double[][] calculateEnergyMatrix(final Picture picture) {
-		final double[][] energy = new double[picture.height()][picture.width()];
-		for (int x = 0; x < picture.width(); x++) {
-			for (int y = 0; y < picture.height(); y++) {
-				energy[y][x] = energy(x, y);
+	private double[][] calculateEnergyMatrix() {
+		final double[][] energy = new double[width][height];
+		for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				energy[x][y] = energy(x, y);
 			}
 		}
 		return energy;
+	}
+	
+	/**
+	 * remove vertical seam from current picture
+	 * @param seam
+	 * @throws NullPointerException When <code>seam</code> is null.
+	 */
+	private void removeSeam(int[] seam) {
+		if (seam == null) {
+			throw new NullPointerException("seam must not be null.");
+		}
+		
+		if (seam.length != height) {
+			throw new IllegalArgumentException("Seam must be same length as image height. Transposed: " + transposed + ", Seam length:" + seam.length + ", image height: " + height + ", array height: " + image[0].length + ", image width:" + width + ", array width:" + image.length);
+		}
+		
+		
+		if (width <= 1) {
+			throw new IllegalArgumentException("Image width is <= 1, no more seams to remove.");
+		}
+		
+		validateSeam(seam);
+		
+		int[][] newPicture = new int[width - 1][height];
+		
+		// Remove seam and create new image.
+		for (int y = 0; y < height; y++) {
+			// For each row.
+			int newX = 0;
+			for (int x = 0; x < width; x++) {
+				// Ensure seam index is within the image bounds.
+				try {
+				if (seam[y] < 0 || seam[y] > (width - 1)) {
+					throw new IllegalArgumentException("Seam index out of bounds.");
+				}
+				} catch (IndexOutOfBoundsException ex) {
+					System.out.println("Caught exception: " + ex.getMessage());
+					System.out.println("Seam length:" + seam.length + ", y: " + y + ", width: " + width + ", height: " + height + ", x: " + y + ", y:" + y);
+					throw ex;
+				}
+				
+				if (seam[y] == x) {
+					continue;
+				} else {
+					newPicture[newX++][y] = image[x][y];
+				}
+			}
+		}
+		
+		this.width = this.width -1;
+		image = newPicture;
+		energy = calculateEnergyMatrix();
 	}
 	
 	/**
@@ -263,27 +342,10 @@ public class SeamCarver {
 	 * @throws NullPointerException When <code>seam</code> is null.
 	 */
 	public void removeHorizontalSeam(int[] seam) {
-		if (seam == null) {
-			throw new NullPointerException("seam must not be null.");
+		if (!transposed) {
+			transpose();
 		}
-		
-		if (picture.height() <= 1) {
-			throw new IllegalArgumentException("Image height is <= 1, no more seams to remove.");
-		}
-		
-		if (seam.length > picture.width()) {
-			throw new IllegalArgumentException("Seam length exceeds image width.");
-		}
-		
-		validateSeam(seam);
-		
-		this.picture = transpose(picture);
-		this.energy = calculateEnergyMatrix(picture);
-		
-		removeVerticalSeam(seam);
-		
-		this.picture = transpose(picture);
-		this.energy = calculateEnergyMatrix(this.picture);
+		removeSeam(seam);
 	}
 	
 	/**
@@ -292,43 +354,10 @@ public class SeamCarver {
 	 * @throws NullPointerException When <code>seam</code> is null.
 	 */
 	public void removeVerticalSeam(int[] seam) {
-		if (seam == null) {
-			throw new NullPointerException("seam must not be null.");
+		if (transposed) {
+			transpose();
 		}
-		
-		if (seam.length > picture.height()) {
-			throw new IllegalArgumentException("Seam length exceeds image height.");
-		}
-		
-		if (picture.width() <= 1) {
-			throw new IllegalArgumentException("Image width is <= 1, no more seams to remove.");
-		}
-		
-		validateSeam(seam);
-		
-		Picture carvedImage = new Picture(picture.width() - 1, picture.height());
-		
-		// Remove seam and create new image.
-		for (int y = 0; y < picture.height(); y++) {
-			// For each row.
-			int newX = 0;
-			for (int x = 0; x < picture.width(); x++) {
-				// Ensure seam index is within the image bounds.
-				if (seam[y] < 0 || seam[y] > picture.width() - 1) {
-					throw new IllegalArgumentException("Seam index out of bounds.");
-				}
-				
-				if (seam[y] == x) {
-					continue;
-				} else {
-					carvedImage.set(newX++, y, picture.get(x, y));
-				}
-			}
-		}
-		picture = carvedImage;
-		
-		// Recalculate energy
-		energy = calculateEnergyMatrix(carvedImage);
+		removeSeam(seam);
 	}
 	
 	/**
