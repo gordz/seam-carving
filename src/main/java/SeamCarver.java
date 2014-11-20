@@ -319,7 +319,7 @@ public class SeamCarver {
 				}
 				} catch (IndexOutOfBoundsException ex) {
 					System.out.println("Caught exception: " + ex.getMessage());
-					System.out.println("Seam length:" + seam.length + ", y: " + y + ", width: " + width + ", height: " + height + ", x: " + y + ", y:" + y);
+					System.out.println("Seam length:" + seam.length + ", y: " + y + ", width: " + width + ", height: " + height + ", x: " + y + ", y:" + y + ", transposed: " + transposed);
 					throw ex;
 				}
 				
