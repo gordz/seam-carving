@@ -330,11 +330,34 @@ public class SeamCarver {
 				}
 			}
 		}
+
 		
 		this.width = this.width -1;
 		image = newPicture;
 		energy = calculateEnergyMatrix();
 	}
+	
+	
+	
+	
+	private String toString(Picture picture) {
+		StringBuilder row = new StringBuilder();
+
+		for (int y = 0; y < picture.height(); y++) {
+			row.append("{ ");
+			for (int x = 0; x < picture.width(); x++) {
+				row.append(picture.get(x, y).getRGB());
+				if (x != picture.width() - 1) {
+					row.append(" ,");
+				}
+			}
+			row.append(" }\n");
+		}
+		//row.append(" }\n");
+
+		return row.toString();	
+	}
+	
 	
 	/**
 	 * remove horizontal seam from current picture
