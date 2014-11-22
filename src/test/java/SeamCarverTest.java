@@ -4,7 +4,7 @@ import static org.junit.Assert.assertThat;
 
 import java.awt.Color;
 
-import org.junit.Ignore;
+import org.junit.Assert;
 import org.junit.Test;
 
 
@@ -161,29 +161,103 @@ public class SeamCarverTest {
 		seamCarver.removeHorizontalSeam(new int[] {0, 0, 2, 0, 0, 0});
 	}
 	
+	@Test
+	public void removeHorizontalSeam_ShouldRemoveSeam() {
+		Picture picture = new Picture("seamCarving/6x5.png");
+		SeamCarver seamCarver = new SeamCarver(picture);
+		seamCarver.removeHorizontalSeam(new int[] {2, 3, 3, 3, 2, 1});
+	}
+	
+
+
+	@Test
+	public void printImage() {
+		Picture picture = new Picture(PICTURE_6x5);
+		System.out.println(toString(picture));
+	}
+	
+	private String toString(Picture picture) {
+		StringBuilder row = new StringBuilder();
+
+		for (int y = 0; y < picture.height(); y++) {
+			row.append("{ ");
+			for (int x = 0; x < picture.width(); x++) {
+				row.append(picture.get(x, y).getRGB());
+				if (x != picture.width() - 1) {
+					row.append(" ,");
+				}
+			}
+			row.append(" }\n");
+		}
+		//row.append(" }\n");
+
+		return row.toString();	
+	}
+	
+	@Test
+	public void picture_ShouldReturnCurrentPicture() {
+		Picture picture = new Picture(PICTURE_6x5);
+		SeamCarver carver = new SeamCarver(picture);
+		Assert.assertEquals(picture, carver.picture());
+	}
+	
+	
 	// TODO update energy calculations.
-	@Ignore 
 	@Test
 	public void removeVerticalSeam_ShouldRemoveVerticalSeam() {
 		Picture picture = new Picture(PICTURE_6x5);
 		SeamCarver carver = new SeamCarver(picture);
+		System.out.println(toString(carver.picture()));
 		carver.removeVerticalSeam(carver.findVerticalSeam());
 		
 		// Check dimentions.
 		assertThat(carver.picture().width(), equalTo(5));
 		assertThat(carver.picture().height(), equalTo(5));
 		
-		// Check energy.
-		assertThat(carver.energy(1,1), equalTo(23346D));
-		assertThat(carver.energy(2,1), equalTo(51304D));
-		assertThat(carver.energy(3,1), equalTo(55112D));
+		int[][] expectedImage = {
+			{ -10399125 ,-2315123 ,-8278562 ,-2021167 ,-12423717 },
+			{ -4895164 ,-15786792 ,-682346 ,-3289679 ,-7128477 },
+			{ -3874795 ,-5842498 ,-8357726 ,-13527927 ,-4168359 },
+			{ -11301017 ,-9547785 ,-9812050 ,-8308590 ,-8818797 },
+			{ -11362935 ,-10719615 ,-10938151 ,-3193568 ,-6524897 }
+		};
 		
-		assertThat(carver.energy(1,2), equalTo(47908D));
-		assertThat(carver.energy(2,2), equalTo(61346D));
-		assertThat(carver.energy(3,2), equalTo(38887D));
+		Picture expectedPicture = new Picture(expectedImage[0].length, expectedImage.length);
+		for (int y = expectedImage.length - 1; y >= 0; y-- ) {
+			for (int x = 0; x < expectedImage[0].length; x++) {
+				expectedPicture.set(x, (expectedImage.length - 1 - y), new Color(expectedImage[x][y]));
+			}
+		}
 		
-		assertThat(carver.energy(1,3), equalTo(31400D));
-		assertThat(carver.energy(2,3), equalTo(37927D));
-		assertThat(carver.energy(3,3), equalTo(63076D));
+		for (int x = 0; x < 4; x++) {
+			System.out.println(String.format("original %s,  new: %s", picture.get(x, 0).getRGB(), expectedPicture.get(x, 0).getRGB()));
+		}
+
+		//System.out.println("Original image:\n " + toString(picture));
+		//System.out.println("New image:\n " + toString(expectedPicture));
+		
+		
+		
+		/*
+		Picture expectedPicture = new Picture(expectedImage[0].length, expectedImage.length);
+		for (int y = expectedImage.length - 1; y >= 0; y-- ) {
+			for (int x = 0; x < expectedImage[0].length; x++) {
+				expectedPicture.set(x, (expectedImage.length - 1 - y), new Color(expectedImage[x][y]));
+			}
+		}
+		
+		Assert.assertEquals(carver.picture(), expectedPicture);
+		*/
 	}	
+	
+	@Test
+	public void removeVerticalAndHorizontal() {
+		Picture picture = new Picture(PICTURE_6x5);
+		SeamCarver carver = new SeamCarver(picture);
+		carver.removeHorizontalSeam(carver.findHorizontalSeam());
+		carver.removeVerticalSeam(carver.findVerticalSeam());
+		carver.removeHorizontalSeam(carver.findHorizontalSeam());
+		carver.removeVerticalSeam(carver.findVerticalSeam());
+		carver.removeHorizontalSeam(carver.findHorizontalSeam());
+	}
 }
