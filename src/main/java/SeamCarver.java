@@ -10,6 +10,10 @@ public class SeamCarver {
 	private int height;
 	private boolean transposed = false;
 	
+	private int transposeCount = 0;
+	private int verticalRemoved = 0;
+	private int horizontalRemoved = 0;
+	
 	/**
 	 * create a seam carver object based on the given picture
 	 * @param picture
@@ -24,6 +28,10 @@ public class SeamCarver {
 		this.width = picture.width();
 		this.height = picture.height();
 		this.energy = calculateEnergyMatrix();
+		System.out.println("Constructor width: "+ picture.width());
+		System.out.println("Constructor height: "+ picture.height());
+		
+		
 	}
 	
 	/**
@@ -113,6 +121,7 @@ public class SeamCarver {
 	}
 	
 	private int[] findSeam() {
+		System.out.println("Inside findSeam()");
 		int[] edgeTo = new int[(width * height) + 2];
 		double[] distTo = new double[(width * height) + 2];
 		
@@ -158,7 +167,6 @@ public class SeamCarver {
 	
 	
 	private void transpose() {
-		System.out.println("Transposing image. Original width :" + width + ", height: " + height);
 		int[][] transposedImage = new int[image[0].length][image.length];
 		double[][] transposedEnergy = new double[energy[0].length][energy.length];
 		
@@ -180,8 +188,11 @@ public class SeamCarver {
 			transposed = true;
 		}
 		
+		System.out.println("Width:" + width + " Height: " + height + " TempWidth: " + tempWidth);
+		
 		image = transposedImage;
 		energy = transposedEnergy;
+		++transposeCount;
 	}
 	
 	/**
@@ -290,50 +301,23 @@ public class SeamCarver {
 	 * @throws NullPointerException When <code>seam</code> is null.
 	 */
 	private void removeSeam(int[] seam) {
-		if (seam == null) {
-			throw new NullPointerException("seam must not be null.");
-		}
-		
-		if (seam.length != height) {
-			throw new IllegalArgumentException("Seam must be same length as image height. Transposed: " + transposed + ", Seam length:" + seam.length + ", image height: " + height + ", array height: " + image[0].length + ", image width:" + width + ", array width:" + image.length);
-		}
-		
-		
-		if (width <= 1) {
-			throw new IllegalArgumentException("Image width is <= 1, no more seams to remove.");
-		}
 		
 		validateSeam(seam);
 		
-		int[][] newPicture = new int[width - 1][height];
+		int[][] newImage = new int[width - 1][height];
 		
-		// Remove seam and create new image.
-		for (int y = 0; y < height; y++) {
-			// For each row.
-			int newX = 0;
-			for (int x = 0; x < width; x++) {
-				// Ensure seam index is within the image bounds.
-				try {
-				if (seam[y] < 0 || seam[y] > (width - 1)) {
-					throw new IllegalArgumentException("Seam index out of bounds.");
-				}
-				} catch (IndexOutOfBoundsException ex) {
-					System.out.println("Caught exception: " + ex.getMessage());
-					System.out.println("Seam length:" + seam.length + ", y: " + y + ", width: " + width + ", height: " + height + ", x: " + y + ", y:" + y + ", transposed: " + transposed);
-					throw ex;
-				}
-				
-				if (seam[y] == x) {
-					continue;
+		for (int x = 0; x < width - 1; x++) {
+			for (int y = 0; y < height; y++) {
+				if (x >= seam[y]) {
+					newImage[x][y] = image[x + 1][y];
 				} else {
-					newPicture[newX++][y] = image[x][y];
+					newImage[x][y] = image[x][y];
 				}
 			}
 		}
-
 		
 		this.width = this.width -1;
-		image = newPicture;
+		image = newImage;
 		energy = calculateEnergyMatrix();
 	}
 	
@@ -369,6 +353,8 @@ public class SeamCarver {
 			transpose();
 		}
 		removeSeam(seam);
+		transpose();
+		++horizontalRemoved;
 	}
 	
 	/**
@@ -381,6 +367,7 @@ public class SeamCarver {
 			transpose();
 		}
 		removeSeam(seam);
+		++verticalRemoved;
 	}
 	
 	/**
@@ -393,6 +380,20 @@ public class SeamCarver {
 			if (Math.abs(seam[i] - seam[i + 1]) > 1) {
 				throw new IllegalArgumentException("Seam contains invalid entries.");
 			}
+		}
+		
+		if (seam == null) {
+			throw new NullPointerException("seam must not be null.");
+		}
+		
+		if (seam.length != height) {
+			throw new IllegalArgumentException("Seam must be same length as image height. Transposed: " + transposed + ", Seam length:" + seam.length + ", image height: " + height + ", image[0].length: " + image[0].length + ", image width:" + width + ", image.length:" + image.length + ", transpose count: " + transposeCount + 
+					", verticalRemoved: " + verticalRemoved + ", horizontalRemoved: " + horizontalRemoved);
+		}
+		
+		
+		if (width <= 1) {
+			throw new IllegalArgumentException("Image width is <= 1, no more seams to remove.");
 		}
 	}
 }

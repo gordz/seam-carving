@@ -161,6 +161,13 @@ public class SeamCarverTest {
 		seamCarver.removeHorizontalSeam(new int[] {0, 0, 2, 0, 0, 0});
 	}
 	
+	@Test
+	public void removeHorizontalSeam_ShouldRemoveSeam() {
+		Picture picture = new Picture("seamCarving/6x5.png");
+		SeamCarver seamCarver = new SeamCarver(picture);
+		seamCarver.removeHorizontalSeam(new int[] {2, 3, 3, 3, 2, 1});
+	}
+	
 
 
 	@Test
@@ -226,8 +233,8 @@ public class SeamCarverTest {
 			System.out.println(String.format("original %s,  new: %s", picture.get(x, 0).getRGB(), expectedPicture.get(x, 0).getRGB()));
 		}
 
-		System.out.println(toString(picture));
-		System.out.println(toString(expectedPicture));
+		//System.out.println("Original image:\n " + toString(picture));
+		//System.out.println("New image:\n " + toString(expectedPicture));
 		
 		
 		
@@ -242,4 +249,15 @@ public class SeamCarverTest {
 		Assert.assertEquals(carver.picture(), expectedPicture);
 		*/
 	}	
+	
+	@Test
+	public void removeVerticalAndHorizontal() {
+		Picture picture = new Picture(PICTURE_6x5);
+		SeamCarver carver = new SeamCarver(picture);
+		carver.removeHorizontalSeam(carver.findHorizontalSeam());
+		carver.removeVerticalSeam(carver.findVerticalSeam());
+		carver.removeHorizontalSeam(carver.findHorizontalSeam());
+		carver.removeVerticalSeam(carver.findVerticalSeam());
+		carver.removeHorizontalSeam(carver.findHorizontalSeam());
+	}
 }
